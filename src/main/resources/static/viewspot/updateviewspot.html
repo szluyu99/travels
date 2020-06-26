@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>修改景点页面</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        form {
+            width: 270px;
+        }
+
+        input {
+            width: 64%;
+            background: #eee;
+        }
+
+        input:focus {
+            background: #fff;
+        }
+
+        form {
+            padding: 0 12px 12px;
+        }
+
+        label {
+            display: block;
+            padding-bottom: 12px;
+        }
+
+        .label-text {
+            width: 36%;
+            float: left;
+        }
+
+        #img-show {
+            width: 135px;
+            height: 135px;
+            display: block;
+            margin: 0 auto;
+            object-fit: cover;
+        }
+    </style>
+    <script>
+        function imgfileChange() {
+            var img_show = document.getElementById("img-show");
+            var imgfile = document.getElementById("imgfile");
+            var freader = new FileReader();
+            freader.readAsDataURL(imgfile.files[0]);
+            freader.onload = function (e) {
+                img_show.src = e.target.result;
+            };
+        }
+    </script>
+</head>
+<body>
+<div id="app">
+    <div id="wrap">
+        <div id="header">
+            <div style="float: right;padding-top: 24px">{{time}}&emsp;</div>
+            <h1>旅游信息管理系统</h1>
+        </div>
+        <div id="header-bar"></div>
+        <div id="content" style="height: 480px">
+            <img src="../img/timg.jpg" style="float: right;height: 320px">
+            <h2>修改景点</h2>
+            <form action="viewspotlist.html" method="post">
+                <label>
+                    <div class="label-text">景&emsp;&emsp;点：</div>
+                    <input type="text" v-model="place.name">
+                </label>
+                <label>
+                    <div class="label-text">印象图片：</div>
+                    <div style="text-align: center;padding-left: 36%">
+                        <img :src="src" alt="" id="img-show">
+                        <input type="file" id="imgfile" ref="myFile" style="display: none" onchange="imgfileChange()">
+                    </div>
+                </label>
+                <label>
+                    <div class="label-text">旺季时间：</div>
+                    <input type="text" v-model="place.hottime">
+                </label>
+                <label>
+                    <div class="label-text">旺季门票：</div>
+                    <input type="text" v-model="place.hotticket">
+                </label>
+                <label>
+                    <div class="label-text">淡季门票：</div>
+                    <input type="text" v-model="place.dimticket">
+                </label>
+                <label>
+                    <div class="label-text">景点描述：</div>
+                    <input type="text" v-model="place.placedes">
+                </label>
+                <label>
+                    <div class="label-text">所属省份：</div>
+                    <select v-model="place.provinceid">
+                        <option v-for="(pro,index) in provinces" :value="pro.id" v-text="pro.name"></option>
+                    </select>
+                </label>
+                <button type="button" @click="updatePlace">提 交</button>&emsp;
+                <a :href="'viewspotlist.html?id=' + place.provinceid">返回</a>
+            </form>
+        </div>
+        <div id="footer">
+            yusael~
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script src="../js/vue.js"></script>
+<script src="../js/axios.min.js"></script>
+<script>
+    const app = new Vue({
+        el: "#app",
+        data: {
+            id: "",
+            place: {},
+            provinces: [],
+            src: "",
+            time: ""
+        },
+        methods: {
+            updatePlace() {
+                console.log(this.place);
+                let myFile = this.$refs.myFile;
+                let files = myFile.files;
+                let file = files[0];
+                let formData = new FormData();
+                formData.append("pic", file);
+                formData.append("id", this.place.id);
+                formData.append("name", this.place.name);
+                formData.append("hottime", this.place.hottime);
+                formData.append("hotticket", this.place.hotticket);
+                formData.append("dimticket", this.place.dimticket);
+                formData.append("placedes", this.place.placedes);
+                formData.append("provinceid", this.place.provinceid);
+                // axios
+                axios({
+                    method: 'post',
+                    url: 'http://localhost:8989/place/update',
+                    data: formData,
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }).then((res) => {
+                    console.log(res.data);
+                    if (res.data.state) {
+                        alert(res.data.msg + ",点击确定回到景点列表");
+                        location.href = "./viewspotlist.html?id=" + this.place.provinceid;
+                    } else {
+                        alert(res.data.msg + ",点击确定回到景点列表");
+                    }
+                });
+            },
+            findOnePlace() {
+                _this = this;
+                axios.get("http://localhost:8989/place/findOne?id=" + this.id).then((res) => {
+                    _this.place = res.data;
+                    _this.src = "data:image/png;base64," + _this.place.picpath;
+                    // console.log(_this.place);
+                });
+            },
+            findAllProvinces() {
+                _this = this;
+                axios.get("http://localhost:8989/province/findByPage?rows=35").then((res) => {
+                    // console.log(res.data.provinces);
+                    _this.provinces = res.data.provinces;
+                });
+            }
+        },
+        created() {
+            this.id = location.href.substr(location.href.indexOf("=") + 1);
+            this.findOnePlace();
+            this.findAllProvinces();
+            // console.log(this.place);
+
+            let now = new Date();
+            this.time = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        }
+    });
+</script>

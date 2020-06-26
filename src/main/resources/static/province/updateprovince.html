@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>修改省份页面</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        form {
+            width: 270px;
+        }
+
+        input {
+            width: 70%;
+            background: #eee;
+        }
+
+        input:focus {
+            background: #fff;
+        }
+
+        form {
+            padding: 0 12px 12px;
+        }
+
+        label {
+            display: block;
+            padding-bottom: 12px;
+        }
+
+        .label-text {
+            width: 30%;
+            float: left;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div id="wrap">
+        <div id="header">
+            <div style="float: right;padding-top: 24px">{{time}}&emsp;</div>
+            <h1>旅游信息管理系统</h1>
+        </div>
+        <div id="header-bar"></div>
+        <div id="content" style="height: 360px">
+            <img src="../img/timg.jpg" style="float: right;height: 320px">
+            <h2>修改省份</h2>
+            <form action="provincelist.html" method="post">
+                <label>
+                    <div class="label-text">省&emsp;份：</div>
+                    <input type="text" v-model="province.name">
+                </label>
+                <label>
+                    <div class="label-text">标&emsp;签：</div>
+                    <input type="text" v-model="province.tags">
+                </label>
+                <button type="button" @click="updateProvince">提 交</button>&emsp;
+                <a href="provincelist.html">返回</a>
+            </form>
+        </div>
+        <div id="footer">
+            yusael
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script src="../js/vue.js"></script>
+<script src="../js/axios.min.js"></script>
+<script>
+    const app = new Vue({
+        el: "#app",
+        data: {
+            id: "",
+            province: {},
+            time: ""
+        },
+        methods: {
+            findOneProvince() {
+                axios.get("http://localhost:8989/province/findOne?id=" + this.id).then((res) => {
+                    this.province = res.data;
+                });
+            },
+            updateProvince() {
+                axios.post("http://localhost:8989/province/update", this.province).then((res) => {
+                    if (res.data.state) {
+                        alert(res.data.msg + "点击确定跳转到省份列表页面!");
+                        location.href = "./provincelist.html";
+                    } else {
+                        alert(res.data.msg);
+                    }
+                });
+            }
+        },
+        created() {
+            this.id = location.href.substring(location.href.indexOf("=") + 1);
+            this.findOneProvince();
+
+            let now = new Date();
+            this.time = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        }
+    });
+</script>

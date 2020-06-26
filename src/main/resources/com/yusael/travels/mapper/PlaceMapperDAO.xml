@@ -1,0 +1,49 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yusael.travels.dao.PlaceDAO">
+
+    <!--根据省份Id 进行分页查询-->
+    <select id="findByProvinceIdPage" resultType="Place">
+        SELECT id, name, picpath, hottime, hotticket, dimticket, placedes, provinceid
+        FROM t_place
+        WHERE provinceid = #{provinceId}
+        ORDER BY id
+        LIMIT #{start}, #{rows}
+    </select>
+
+    <!--查询总记录条数-->
+    <select id="findByProvinceIdCounts" parameterType="String" resultType="Integer">
+        SELECT count(id) FROM t_place WHERE provinceid = #{provinceId}
+    </select>
+    
+    <!--保存place-->
+    <insert id="save" parameterType="Place" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_place
+        VALUES (#{id}, #{name}, #{picpath}, #{hottime}, #{hotticket}, #{dimticket}, #{placedes}, #{provinceid})
+    </insert>
+
+    <!--根据id查询景点信息-->
+    <select id="findOne" parameterType="String" resultType="Place">
+        SELECT id, name, picpath, hottime, hotticket, dimticket, placedes, provinceid
+        FROM t_place
+        WHERE id = #{id}
+    </select>
+
+    <!--删除景点信息方法-->
+    <delete id="delete" parameterType="String">
+        DELETE FROM t_place WHERE id = #{id}
+    </delete>
+
+    <!--修改景点信息-->
+    <update  id="update" parameterType="Place">
+        UPDATE t_place SET
+            name = #{name},
+            picpath = #{picpath},
+            hottime = #{hottime},
+            hotticket = #{hotticket},
+            dimticket = #{dimticket},
+            placedes= #{placedes},
+            provinceid = #{provinceid}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
